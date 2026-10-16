@@ -6,15 +6,15 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 const mergeSafety = readFileSync(new URL('../plugins/pstack/skills/poteto-mode/references/merge-safety.md', import.meta.url), 'utf8');
-const recipe = [...mergeSafety.matchAll(/^```sh\n([\s\S]*?)^```$/gm)]
-  .map((m) => m[1]).find((block) => block.includes('git rebase'));
-if (!recipe) throw new Error('merge-safety.md has no restack recipe');
+const blocks = [...mergeSafety.matchAll(/^```sh\n([\s\S]*?)^```$/gm)].map((m) => m[1]);
+const landedCheck = blocks.find((block) => block.includes('merge-base --is-ancestor'));
+const leasePush = blocks.find((block) => block.includes('--force-with-lease'));
+if (!landedCheck || !leasePush) throw new Error('merge-safety.md lacks its landed-parent check or lease push');
 
 const run = (cwd, ...args) => execFileSync('git', args, {
   cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
 }).trim();
-// Run the documented restack block verbatim with its variables bound.
-const runRecipe = (cwd, vars) => spawnSync('sh', ['-e', '-c', recipe], {
+const runBlock = (block, cwd, vars) => spawnSync('sh', ['-e', '-c', block], {
   cwd, encoding: 'utf8', env: { ...process.env, ...vars },
 });
 function fixture(body) {
@@ -34,29 +34,19 @@ function fixture(body) {
   } finally { rmSync(root, { recursive: true, force: true }); }
 }
 
-test('after a parent squash, replay only child commits and preserve final content', () => fixture((root, commit) => {
-  const remote = join(root, 'remote.git');
-  run(root, 'init', '--bare', remote);
-  run(root, 'remote', 'add', 'origin', remote);
+test('after a parent merge commit, the child diff against trunk is only child work', () => fixture((root, commit) => {
   run(root, 'checkout', '-b', 'parent');
   commit('parent.txt', 'first\n');
-  const oldParent = commit('parent.txt', 'parent final\n');
+  const parentHead = commit('parent.txt', 'parent final\n');
   run(root, 'checkout', '-b', 'child');
-  const captured = commit('child.txt', 'child only\n');
-  run(root, 'push', 'origin', 'child');
+  const childHead = commit('child.txt', 'child only\n');
   run(root, 'checkout', 'main');
-  run(root, 'merge', '--squash', 'parent');
-  run(root, 'commit', '-m', 'Squash parent');
+  run(root, 'merge', '--no-ff', '-m', 'Merge parent', 'parent');
   const trunk = run(root, 'rev-parse', 'HEAD');
-  const restack = runRecipe(root, {
-    old_parent_tip: oldParent, trunk_tip: trunk, child: 'child', captured_remote_head: captured,
-  });
-  assert.equal(restack.status, 0, restack.stderr);
-  assert.equal(run(root, 'rev-list', '--count', `${trunk}..child`), '1');
-  assert.equal(run(root, 'diff', '--name-only', `${trunk}..child`), 'child.txt');
-  assert.equal(readFileSync(join(root, 'parent.txt'), 'utf8'), 'parent final\n');
-  assert.equal(readFileSync(join(root, 'child.txt'), 'utf8'), 'child only\n');
-  assert.equal(run(root, 'ls-remote', 'origin', 'refs/heads/child').split(/\s/)[0], run(root, 'rev-parse', 'child'));
+  const check = runBlock(landedCheck, root, { parent_head: parentHead, trunk_tip: trunk, child: 'child' });
+  assert.equal(check.status, 0, check.stderr);
+  assert.equal(check.stdout.trim(), 'child.txt');
+  assert.equal(run(root, 'rev-parse', 'child'), childHead);
 }));
 
 test('explicit pre-rewrite lease refuses concurrent work even after a background fetch', () => fixture((root, commit) => {
@@ -71,10 +61,7 @@ test('explicit pre-rewrite lease refuses concurrent work even after a background
   run(root, 'reset', '--hard', captured);
   commit('child.txt', 'rewritten\n');
   run(root, 'fetch', 'origin');
-  // No parent moved, so the rebase is a no-op and the push is the step under test.
-  const push = runRecipe(root, {
-    old_parent_tip: 'main', trunk_tip: 'main', child: 'child', captured_remote_head: captured,
-  });
+  const push = runBlock(leasePush, root, { child: 'child', captured_remote_head: captured });
   assert.notEqual(push.status, 0);
   assert.match(push.stderr, /stale info/);
   assert.equal(run(root, 'ls-remote', 'origin', 'refs/heads/child').split(/\s/)[0], concurrent);

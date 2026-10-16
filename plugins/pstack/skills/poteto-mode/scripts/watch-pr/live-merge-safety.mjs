@@ -86,7 +86,7 @@ try {
   console.log('PASS: canonical cancellation rejects changed head and base revision records');
   let refused = false;
   try {
-    gh('pr', 'merge', String(pr), '--repo', repository, '--squash', '--match-head-commit', approvedHead);
+    gh('pr', 'merge', String(pr), '--repo', repository, '--merge', '--match-head-commit', approvedHead);
   } catch (error) {
     if (!/head.*(changed|modified|match)|expected.*head|head.*expected/i.test(String(error.stderr))) throw error;
     refused = true;
@@ -98,7 +98,7 @@ try {
   // Exercise the service mutation directly as well as gh's possible preflight.
   let atomicRefusal = false;
   try {
-    api(`${path}/pulls/${pr}/merge`, '-X', 'PUT', '-f', `sha=${approvedHead}`, '-f', 'merge_method=squash');
+    api(`${path}/pulls/${pr}/merge`, '-X', 'PUT', '-f', `sha=${approvedHead}`, '-f', 'merge_method=merge');
   } catch (error) {
     if (!/HTTP 409/.test(String(error.stderr))) throw error;
     atomicRefusal = true;
@@ -115,7 +115,7 @@ try {
   console.log('PASS: destination changes independently of head; requires reassessment');
   api(`${path}/pulls/${pr}`, '-X', 'PATCH', '-f', `base=${base}`);
   await waitForMergeable(pr, next.commit.sha, base);
-  gh('pr', 'merge', String(pr), '--repo', repository, '--squash', '--match-head-commit', next.commit.sha);
+  gh('pr', 'merge', String(pr), '--repo', repository, '--merge', '--match-head-commit', next.commit.sha);
   const merged = await waitFor('merged state', () => inspect(pr), facts => facts.state === 'MERGED');
   assert.equal(merged.state, 'MERGED');
   assert.equal(merged.revision.headRefOid, next.commit.sha);

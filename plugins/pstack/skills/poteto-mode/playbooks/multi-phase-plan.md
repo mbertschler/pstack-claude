@@ -131,7 +131,7 @@ Each live lane runs in its own worktree at the PR head. Drive through the skill 
 - [ ] Root's clean verdict at the exact head SHA.
 - [ ] Bugbot triage done.
 - [ ] Base and verdict are current under the execution playbook and the patch-id rule in `playbooks/shipping.md`.
-- [ ] <The owner squash-merges its own PR, or the root appends it to the base-branch stack and the operator lands it bottom-up.>
+- [ ] <The owner merges its own PR with a merge commit, or the root appends it to the base-branch stack and the operator lands it bottom-up.>
 
 ## Close the program
 

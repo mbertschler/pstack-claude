@@ -21,16 +21,19 @@ Establish the affected dependency chain and coordinate its topology writer first
 
 Capture the remote branch SHA before rewriting with `git ls-remote --exit-code origin "refs/heads/$branch"`, and validate that exactly the intended ref was returned. Keep that SHA in the operation record. An implicit lease or a prior read alone is insufficient; a background fetch can move a tracking ref.
 
-After confirming the parent squash landed in the intended destination, fetch trunk and identify the recorded old parent tip on which this child was built. Verify it is an ancestor of the child and inspect `old-parent..child` to confirm the range contains only child work. If it does not, reconstruct the boundary before proceeding. Never infer it from the parent's new squash commit.
+After confirming the parent's merge commit landed in the intended destination, fetch trunk and verify the parent's verified head is an ancestor of trunk. The child was built on that head, so after the retarget its diff against trunk contains only child work, with no rewrite and no force-push. Inspect `trunk...child` to confirm it, reassess review applicability against the new base, and run checks at the child's head. Retarget only after cancellation has been verified.
 
 ```sh
-git merge-base --is-ancestor "$old_parent_tip" "$child"
-git rebase --onto "$trunk_tip" "$old_parent_tip" "$child"
+git merge-base --is-ancestor "$parent_head" "$trunk_tip"
+git diff --name-only "$trunk_tip...$child"
+```
+
+When drift or a conflict does require rewriting a branch, push it with a lease on the captured remote SHA. If the lease refuses the push, fetch and reconcile the concurrent work; do not refresh the lease and retry the overwrite blindly.
+
+```sh
 git push --force-with-lease="refs/heads/$child:$captured_remote_head" \
   origin "HEAD:refs/heads/$child"
 ```
-
-Run the rebase in the child's clean worktree, where `HEAD` is the prepared child. This excludes the parent's old commits. Inspect the resulting diff and content, reassess review applicability, and run checks at the new head. If the lease refuses the push, fetch and reconcile the concurrent work; do not refresh the lease and retry the overwrite blindly. Retarget only after cancellation has been verified. Keep the recorded boundary for each remaining child when preparing later levels.
 
 ## What the service guards
 
