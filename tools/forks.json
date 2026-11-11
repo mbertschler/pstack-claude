@@ -68,7 +68,7 @@
     },
     "plugins/pstack/skills/poteto-mode/playbooks/feature.md": {
       "kind": "policy",
-      "why": "Gives every file-writing delegate its own worktree, based on the branch's HEAD when it builds on unmerged commits, and forbids writing in a worktree a delegate still holds.",
+      "why": "Gives every file-writing delegate its own worktree, based on the branch's HEAD when it builds on unmerged commits, and forbids writing in a worktree a delegate still holds, questions the requirements between how and architect, and hands over the smallest version with the dropped requirements as options.",
       "since": "0.9.39",
       "upstream": "not-proposed"
     },
@@ -80,7 +80,7 @@
     },
     "plugins/pstack/skills/poteto-mode/playbooks/opening-a-pr.md": {
       "kind": "policy",
-      "why": "Requires stopping every live agent that holds a worktree before committing, merging, or deploying from it.",
+      "why": "Requires stopping every live agent that holds a worktree before committing, merging, or deploying from it, and lists the questioned and dropped requirements under Scope.",
       "since": "0.9.10",
       "upstream": "not-proposed"
     },
