@@ -29,7 +29,7 @@ The opening of `initialPrompt` replaces the subagent type. `<plugin>` is the pst
 Every visible workspace is an entry in the user's sidebar, so the sidebar should show the session they talk to and nothing else.
 
 - **One writing delegate at a time:** omit `workspaceId`. The delegate works in this workspace on the session's branch, which is pstack's "exclusive branch" option. Commit your own changes first. Until the delegate reports, do not edit files, run tests or switch branches in this workspace.
-- **Several delegates writing at the same time:** give each one a hidden worktree. First `create_workspace` with `isolation: "worktree"`, `background: true`, `mode: "branch-off"`, `baseBranch: "refs/heads/<current branch>"` and a `branchName` (with the Jira ticket ID when the work has one), then pass its `workspaceId`.
+- **Several delegates writing at the same time:** give each one a hidden worktree. First `create_workspace` with `isolation: "worktree"`, `background: true`, `mode: "branch-off"`, `baseBranch: "refs/heads/<current branch>"` and a `branchName`, then pass its `workspaceId`.
 - **A delegate in another repository:** create one hidden worktree in that repository for the session the same way, with `path` set to that repository's checkout, and reuse it for every later delegate there. The one-writer-at-a-time rule applies inside it.
 - `background: true` on `create_workspace` hides only the workspace. The agent stays this session's subagent and shows in its Subagents track. Never pass `background: true` to `create_agent`, because that hides the agent from the Subagents track and from notifications.
 
