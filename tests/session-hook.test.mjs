@@ -2,9 +2,9 @@
 // injected unless that runtime's model sheet turns it off.
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { agentSkills } from "../tools/generate.mjs";
@@ -52,7 +52,7 @@ const runtimes = {
   },
 };
 
-function runHook(runtime, sheet, command = sessionStart[runtimes[runtime].hooks].hooks[0].command) {
+function runHook(runtime, sheet, command = sessionStart[runtimes[runtime].hooks].hooks[0].command, extraEnv = {}) {
   const home = mkdtempSync(join(tmpdir(), "pstack-hook-"));
   const { sheetDir, env } = runtimes[runtime];
   const sheetRoot = join(home, sheetDir);
@@ -62,7 +62,7 @@ function runHook(runtime, sheet, command = sessionStart[runtimes[runtime].hooks]
   }
   try {
     const r = spawnSync("sh", ["-c", command], {
-      env: { PATH: process.env.PATH, HOME: home, CLAUDE_PLUGIN_ROOT: pluginRoot, ...env(sheetRoot) },
+      env: { PATH: process.env.PATH, HOME: home, CLAUDE_PLUGIN_ROOT: pluginRoot, ...env(sheetRoot), ...extraEnv },
       encoding: "utf8",
     });
     return { status: r.status, out: r.stdout, err: r.stderr };
@@ -123,6 +123,29 @@ describe("SessionStart hook", () => {
       }
     });
   }
+});
+
+describe("SessionStart hook inside Paseo", () => {
+  const paseo = { PASEO_AGENT_ID: "agent-1" };
+  const runInPaseo = (runtime, sheet) => runHook(runtime, sheet, undefined, paseo);
+  const pointer = /^\nThis session runs inside Paseo\. Before a pstack skill starts a subagent, read (\S+) and follow it\.\n$/;
+
+  test("Claude Code gets the mandate and then a pointer to the Paseo reference", () => {
+    const r = runInPaseo("claude", null);
+    expect({ status: r.status, err: r.err }).toEqual({ status: 0, err: "" });
+    expect(r.out.startsWith(mandate)).toBe(true);
+    const path = r.out.slice(mandate.length).match(pointer)?.[1];
+    expect(path && resolve(path)).toBe(join(pluginRoot, "skills/poteto-mode/references/paseo-tools.md"));
+    expect(existsSync(path)).toBe(true);
+  });
+
+  test("Codex gets the mandate alone, since the reference maps the Claude Code Agent tool", () => {
+    expect(runInPaseo("codex", null)).toEqual({ status: 0, out: mandate, err: "" });
+  });
+
+  test("an off sheet injects nothing", () => {
+    expect(runInPaseo("claude", "session hook: off\n")).toEqual({ status: 0, out: "", err: "" });
+  });
 });
 
 const close = "</EXTREMELY_IMPORTANT>";

@@ -45,3 +45,8 @@ if [ "$1" = copilot ]; then
 fi
 
 cat "${CLAUDE_PLUGIN_ROOT}/hooks/session-start-context.md"
+
+if [ "$1" = claude ] && [ -n "${PASEO_AGENT_ID:-}" ]; then
+  printf '\nThis session runs inside Paseo. Before a pstack skill starts a subagent, read %s and follow it.\n' \
+    "${CLAUDE_PLUGIN_ROOT}/skills/poteto-mode/references/paseo-tools.md"
+fi
