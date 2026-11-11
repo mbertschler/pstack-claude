@@ -35,6 +35,8 @@ Remaining triggers:
 - Any PR-status request ("babysit this", "get it green", "address the review-bot comments", and most often "check on PR X" or "anything outstanding on X") → the **Babysit** playbook (`playbooks/babysit.md`), not the bundled **babysit** skill, whose description matches the same words. Never triggered by merely opening a PR. Declare its mode before polling. The playbook's step 1 owns the request-to-mode mapping. Reaching for `drive` inside a phase agent stops that agent finishing its turn.
 - Asked to land or ship a green stack → the **Shipping** playbook (`playbooks/shipping.md`). Green is not safe. Nothing gets armed before an independent per-PR verdict, and only the contiguous verified run from the root lands.
 - An automated PR-review bot or the agentic security review commented → skeptical posture. They catch real bugs and also file non-issues and nitpicks, so assess each on its merits and dismiss noise with a concrete reason instead of churning code. Triage fix / dismiss / ask per `references/bugbot-triage.md`.
+- A review finds a critical bug → first ask whether the mechanism with the bug can go, per the **subtract-before-you-add** principle skill. Delete it when no requirement needs it, instead of fixing it.
+- Two fix rounds on one mechanism have both failed review → question the requirement behind the mechanism per the **question-every-requirement** principle skill before a third round.
 - Deploying to a managed platform (Railway, Fly, Vercel, Heroku, and the like) → load that platform's skill, project-local or installed, before running its CLI, the same way Shipping step 1 resolves the forge before the first PR operation.
 - A defect found mid-task → severity decides its artifact, not where it turned up. A correctness or data gap gets a tracked issue even when it surfaces while writing a closure doc; a cosmetic margin can stay in the doc.
 - Broken skill mid-task → fix it in its own PR. Don't block. Don't silently work around it.
@@ -44,12 +46,14 @@ Remaining triggers:
 
 Read the leaf skill in full for any principle you apply. Each entry names when it applies. Each leaf is the **principle-<title>** skill, with the title in kebab case, hyphens kept and other punctuation dropped, unless the entry gives its name.
 
+Design and build in five steps, in this order. Question every requirement, per Question Every Requirement. Delete every part that no requirement needs, per Subtract Before You Add. Simplify and optimize only what is left, and when fixes keep failing, test their premise per Attack the Premise. Hand over the smallest version first and offer the rest as options, per Sequence Work into Verifiable Units. Automate a practice last, once it has been done by hand and held up, per Encode Lessons in Structure.
+
 **Core**
 
 - **Question Every Requirement.** Before you design or build anything nontrivial, and when a new requirement turns up during the work. Write the requirements down, your own readings included, and shrink or drop each one that does not earn its cost.
 - **Laziness Protocol.** Refactoring, sizing a diff, or tempted to add abstractions, layers, or signal threading. Bias to deletion and the smallest change that solves the problem.
 - **Foundational Thinking.** Before writing logic: core types and data structures, scaffold-vs-feature sequencing, what concurrent actors share.
-- **Redesign from First Principles.** Integrating a new requirement into an existing design. Redesign as if it had been foundational from day one.
+- **Redesign from First Principles.** Integrating a new requirement into an existing design. Question the requirement first, then redesign as if it had been foundational from day one.
 - **Attack the Premise.** Two or more fixes that share one premise have failed the same gate. Write the premise down and test it directly before you write another fix that assumes it.
 - **Subtract Before You Add.** Sequencing an addition, refactor, or rewrite. Remove dead weight first, then build on the simpler base.
 - **Minimize Reader Load.** Reviewing or shaping code that's hard to trace. Count layers and hidden state, collapse one-caller wrappers, shrink mutable scope.
@@ -82,7 +86,7 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 **Meta**
 
-- **Encode Lessons in Structure.** You catch yourself writing the same instruction a second time. Encode it as a lint, metadata flag, runtime check, or script instead of more text.
+- **Encode Lessons in Structure.** You catch yourself writing the same instruction a second time. Question the rule and try to delete it first. Encode what survives as a lint, metadata flag, runtime check, or script instead of more text.
 
 ## Autonomy
 

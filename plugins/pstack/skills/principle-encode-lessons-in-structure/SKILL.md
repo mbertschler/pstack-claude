@@ -6,6 +6,8 @@ user-invocable: false
 
 # Encode Lessons in Structure
 
+Before you encode a rule, question it and try to delete it.
+
 If the lesson needs judgment and cannot be encoded, make the instruction more prominent and add an example of the failure mode.
 
 **Corollary:** If the fix is structural, only use the structural fix. The instruction is the symptom.
