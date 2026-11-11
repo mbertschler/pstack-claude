@@ -61,7 +61,7 @@ The Live column records the end-to-end run on real Pi with `PSTACK_PI_LIVE=1` (`
 | S04 | `plugin-dev:skill-development` | Pi's skills docs and the Agent Skills specification | mapping | pi-tools.md Driver and bundled skills | n/a |
 | S05 | Bundled `babysit` disambiguation | Pi has no bundled `babysit`, so only pstack's exists | n/a | poteto-mode Non-negotiables | n/a |
 | S06 | `superpowers`, `code-review`, `simplify`, `security-review` | Not present on Pi | difference | Mentions only. The hook text defers to other mandates, and no workflow requires these skills. | n/a |
-| S07a | Frontmatter `user-invocable: false` | Pi ignores it, so the 23 `principle-*` skills appear in `/skill:` completion | difference | Menu visibility only. The model still loads each principle skill by name, as on Claude Code. | n/a |
+| S07a | Frontmatter `user-invocable: false` | Pi ignores it, so the 25 `principle-*` skills appear in `/skill:` completion | difference | Menu visibility only. The model still loads each principle skill by name, as on Claude Code. | n/a |
 | S07b | Frontmatter `paths:` auto-load | The extension notes the skill on the first matching file read or edit | extension | `the first matching file gets a one-line note naming the skill, once per session` | n/a |
 | S07c | Frontmatter `disable-model-invocation` | Honored by Pi; no pstack skill sets it | native | Pi docs/skills.md | n/a |
 | C01 | `gh` | Same CLI through `bash` | native | pi-tools.md Vendored scripts | n/a |
