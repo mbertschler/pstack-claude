@@ -74,7 +74,7 @@ The Claude Code, Codex, and GitHub Copilot plugins load the same short [routing 
 - It involves a design or architecture choice.
 - It concerns a bug with an unknown cause or a performance issue.
 
-Smaller tasks proceed directly. The full skill loads when invoked, and explicit user instructions take precedence.
+Smaller tasks proceed directly. The full skill loads when invoked, and explicit user instructions take precedence when they conflict with pstack. No instruction exempts a requirement from being questioned, shrunk or dropped.
 
 To disable routing, run `setup-pstack` and turn off the session hook. In Claude Code, use `/pstack:setup-pstack`. You can also write `session hook: off` in the runtime's sheet, at the path in [setup-pstack's runtime table](../plugins/pstack/skills/setup-pstack/SKILL.md#other-runtimes). The hook reads that setting before injecting its instruction. Without the setting, routing stays on.
 

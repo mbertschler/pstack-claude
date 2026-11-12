@@ -50,7 +50,7 @@ Design and build in five steps, in this order. Question every requirement, per Q
 
 **Core**
 
-- **Question Every Requirement.** Before you design or build anything nontrivial, and when a new requirement turns up during the work. Write the requirements down, your own readings included, and shrink or drop each one that does not earn its cost.
+- **Question Every Requirement.** Before you design or build anything nontrivial, and when a new requirement turns up during the work. Write the requirements down, your own readings included, and shrink or drop each one that does not earn its cost before you build it, even when a spec, brief or instruction says to build it exactly, however narrow your task.
 - **Laziness Protocol.** Refactoring, sizing a diff, or tempted to add abstractions, layers, or signal threading. Bias to deletion and the smallest change that solves the problem.
 - **Foundational Thinking.** Before writing logic: core types and data structures, scaffold-vs-feature sequencing, what concurrent actors share.
 - **Redesign from First Principles.** Integrating a new requirement into an existing design. Question the requirement first, then redesign as if it had been foundational from day one.
